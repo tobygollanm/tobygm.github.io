@@ -66,8 +66,29 @@
       status.classList.remove('error');
     });
 
-    mv.addEventListener('error', () => {
-      const attrSrc = mv.getAttribute('src');
+    let tried = 0;
+    async function fallbackLoad(){
+      tried++;
+      if (tried === 1) {
+        // Try the project pages absolute URL (cache-busted)
+        const abs = `https://tobygollanm.github.io/tobygm.github.io/human-brain.glb?v=${Date.now()}`;
+        mv.src = abs;
+      } else if (tried === 2) {
+        // Try raw.githubusercontent as a final fallback
+        const raw = `https://raw.githubusercontent.com/tobygollanm/tobygm.github.io/main/human-brain.glb?nocache=${Date.now()}`;
+        mv.src = raw;
+      } else {
+        // Give up after two fallbacks
+        const attrSrc = mv.getAttribute('src');
+        const resolved = new URL(attrSrc, document.baseURI).href;
+        status.textContent = `Model failed to load. Attribute src: ${attrSrc} | Resolved: ${resolved}`;
+        status.classList.add('error');
+        console.warn('Model load error — tried attribute src:', attrSrc, 'resolved to:', resolved);
+        return;
+      }
+    }
+
+    mv.addEventListener('error', fallbackLoad);
       const resolved = new URL(attrSrc, document.baseURI).href;
       status.textContent = `Model failed to load. Attribute src: ${attrSrc} | Resolved: ${resolved}`;
       status.classList.add('error');
