@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Toby Gollan‑Myers</title>
-  <meta name="description" content="Neurotech, startups, and notes by Toby Gollan‑Myers." />
+  <title>Toby Gollan-Myers</title>
+  <meta name="description" content="Neurotech, startups, and notes by Toby Gollan-Myers." />
   <link rel="icon" href="./favicon.ico" />
 
   <!-- model-viewer for GLB/GLTF rendering -->
@@ -20,10 +20,9 @@
 
     /* Centered hero brain */
     .hero{display:flex;flex-direction:column;align-items:center;margin:8px auto 18px;}
-    model-viewer.hero-brain{width:240px;height:240px;display:block;border-radius:var(--radius);background:var(--card);box-shadow:0 8px 24px rgba(0,0,0,.08);} 
-    .status{margin-top:8px;color:var(--muted);font-size:.92rem} 
+    model-viewer.hero-brain{width:240px;height:240px;display:block;border-radius:var(--radius);background:var(--card);box-shadow:0 8px 24px rgba(0,0,0,.08);}
+    .status{color:var(--muted);font-size:.95rem;margin-top:8px}
     .status.error{color:#b91c1c}
-    .hint{color:var(--muted);font-size:.95rem;margin-top:8px}
 
     /* Sections */
     .section-title{margin:22px 0 10px;font-size:1.05rem;letter-spacing:.3px;text-transform:uppercase;color:var(--muted)}
@@ -36,12 +35,12 @@
 <body>
   <main class="wrap">
     <header>
-      <h1>Toby Gollan‑Myers</h1>
+      <h1>Toby Gollan-Myers</h1>
     </header>
 
     <!-- Centered 3D brain above About -->
     <section class="hero" aria-label="3D brain">
-      <model-viewer id="brain3d" class="hero-brain" src="./assets/human-brain.glb"
+      <model-viewer id="brain3d" class="hero-brain" src="https://tobygollanm.github.io/tobygm.github.io/assets/human-brain.glb"
         alt="3D brain" camera-controls auto-rotate shadow-intensity="0.4"></model-viewer>
       <div id="brain-status" class="status">Loading 3D model…</div>
     </section>
@@ -49,7 +48,7 @@
     <!-- ABOUT on top -->
     <h2 class="section-title" id="about">About</h2>
     <section class="post">
-      <p>I'm the co‑founder of Symphony Neurosciences. I studied Psychological & Brain Sciences at UCSB and split time between research and building product.</p>
+      <p>I'm the co-founder of Symphony Neurosciences. I studied Psychological & Brain Sciences at UCSB and split time between research and building product.</p>
       <p>Elsewhere: <a href="https://www.linkedin.com/">LinkedIn</a> · <a href="https://github.com/">GitHub</a> · <a href="https://x.com/">X</a></p>
     </section>
 
@@ -62,18 +61,17 @@
     </article>
 
     <footer>
-      © <span id="y"></span> Toby Gollan‑Myers
+      © <span id="y"></span> Toby Gollan-Myers
     </footer>
   </main>
 
   <script type="module">
-    // Footer year
     document.getElementById('y').textContent = new Date().getFullYear();
 
-    // Auto-tint model red on load (no UI controls)
     const mv = document.getElementById('brain3d');
+    const status = document.getElementById('brain-status');
+
     mv.addEventListener('load', async () => {
-      const status = document.getElementById('brain-status');
       status.textContent = 'Loaded — drag to orbit';
       status.classList.remove('error');
       try {
@@ -81,14 +79,11 @@
         (mv.model?.materials || []).forEach(m => m?.pbrMetallicRoughness?.setBaseColorFactor?.([1,0,0,1]));
       } catch {}
     });
-      } catch {}
-    });
-      // Helpful error message if the GLB can't be found
+
     mv.addEventListener('error', () => {
-      const status = document.getElementById('brain-status');
-      status.textContent = 'Model failed to load. Check that assets/human-brain.glb exists in the same branch and path as index.html.';
+      status.textContent = `Model failed to load. Tried: ${mv.src}`;
       status.classList.add('error');
-      console.warn('Model load error — ensure ./assets/human-brain.glb is present and case matches.');
+      console.warn('Model load error — verify that the file exists at the specified URL.');
     });
   </script>
 </body>
