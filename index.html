@@ -36,13 +36,8 @@
         alt="3D brain"
         camera-controls
         auto-rotate
-        tone-mapping="aces"
-        exposure="0.22"
-        environment-intensity="0.25"
-        shadow-intensity="0.25"
-        environment-image="https://modelviewer.dev/shared-assets/environments/moonless_golf_2k.hdr"
-        camera-orbit="0deg 75deg 2.5m"
-        field-of-view="25deg">
+        camera-orbit="0deg 75deg 100%"
+        field-of-view="30deg">
       </model-viewer>
       <div id="brain-status" class="status">Loading 3D model…</div>
     </section>
@@ -67,6 +62,16 @@
     mv.addEventListener('load', async () => {
       status.textContent = 'Loaded — drag to orbit';
       status.classList.remove('error');
+      // Remove all previous lighting/material tweaks to avoid invisibility
+      // Keep only a gentle red tint if supported
+      try {
+        await mv.updateComplete;
+        (mv.model?.materials || []).forEach(m => {
+          const pbr = m?.pbrMetallicRoughness;
+          pbr?.setBaseColorFactor?.([1,0,0,1]);
+        });
+      } catch {}
+    });
       try {
         await mv.updateComplete;
         (mv.model?.materials || []).forEach(m => {
