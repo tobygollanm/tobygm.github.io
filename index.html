@@ -8,9 +8,23 @@
   <link rel="icon" href="./favicon.ico" />
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <style>
-    :root { --bg:#f3f4f6; --fg:#0f172a; --muted:#6b7280; --link:#0ea5e9; --maxw:880px; }
+    :root { --bg:#f3f4f6; --fg:#0f172a; --muted:#6b7280; --link:#0ea5e9; --maxw:880px; --dur:650ms; }
     *{box-sizing:border-box}
+    html,body{height:100%}
     body{margin:0;font:16px/1.65 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--fg);background:var(--bg)}
+
+    /* Intro (landing) */
+    .intro{position:fixed;inset:0;display:grid;place-items:center;background:var(--bg);z-index:50;transition:opacity var(--dur) ease, transform var(--dur) ease}
+    .intro__wrap{display:flex;flex-direction:column;align-items:center;gap:14px}
+    .intro h1{margin:0 0 6px;font-size:clamp(32px,5.5vw,64px)}
+    .intro .sub{color:var(--muted);font-size:.98rem;margin-top:2px}
+    model-viewer.intro-brain{width:min(56vmin,360px);height:min(56vmin,360px);display:block}
+    .enter{cursor:pointer;margin-top:8px;font-size:.95rem;color:var(--muted);text-decoration:underline;text-underline-offset:3px}
+    .enter:hover{color:var(--fg)}
+    .shrink { transform: scale(.22); transition: transform var(--dur) ease; transform-origin:center }
+
+    /* Site content */
+    .site{opacity:0;transform:scale(.985);transition:opacity var(--dur) ease, transform var(--dur) ease}
     .wrap{max-width:var(--maxw);margin:0 auto;padding:28px 18px 40px}
     header{display:flex;justify-content:center}
     header h1{margin:4px 0 16px;font-size:clamp(28px,3.5vw,44px)}
@@ -20,101 +34,102 @@
     .status.error{color:#b91c1c}
     .section-title{margin:28px 0 12px;font-size:1.05rem;letter-spacing:.3px;text-transform:uppercase;color:var(--muted)}
     footer{margin:34px 0 10px;color:var(--muted);font-size:.92rem;text-align:center}
+
+    /* After enter */
+    body.entered .intro{opacity:0;pointer-events:none}
+    body.entered .site{opacity:1;transform:scale(1)}
   </style>
 </head>
 <body>
-  <main class="wrap">
-    <header>
-      <h1>Toby Gollan-Myers</h1>
-    </header>
 
-    <section class="hero" aria-label="3D brain">
-      <model-viewer
-        id="brain3d"
-        class="hero-brain"
-        src="https://tobygollanm.github.io/tobygm.github.io/human-brain.glb"
+  <!-- Landing intro -->
+  <section class="intro" id="intro">
+    <div class="intro__wrap">
+      <h1>Toby Gollan‑Myers</h1>
+      <model-viewer id="introBrain" class="intro-brain"
+        src="./human-brain.glb"
         alt="3D brain"
         camera-controls
         auto-rotate
-        camera-orbit="0deg 75deg 100%"
-        field-of-view="30deg"
-        environment-image="https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/hdris/studio-small-3/studio_small_03_1k.hdr"
+        environment-image="./env/studio_small_05_1k.hdr"
         tone-mapping="aces"
-        exposure="0.3"
-        environment-intensity="0.5"
-        shadow-intensity="0.01">
+        exposure="0.35"
+        environment-intensity="0.85"
+        shadow-intensity="0.6">
       </model-viewer>
-      <script type="module">
-const mv = document.querySelector('#brain3d');
-mv.addEventListener('load', async () => {
-  await mv.updateComplete;
-  (mv.model?.materials || []).forEach(m => {
-    if (m.unlit) return;                         // unlit can't be metallic
-    const p = m.pbrMetallicRoughness;
-    // deep red base color (not pure #FF0000, which looks plastic)
-    p?.setBaseColorFactor?.([0.55, 0.02, 0.02, 1]);  // ~#8c0606
-    // metallic look + tight highlights
-    p?.setMetallicFactor?.(0.98);
-    p?.setRoughnessFactor?.(0.20);                  // 0.20–0.35 is a nice “polished metal” range
-    // no glow
-    m?.setEmissiveFactor?.([0,0,0]);
-  });
-});
-</script>
-      <div id="brain-status" class="status">Loading 3D model…</div>
-    </section>
+      <div class="enter" id="enterBtn">enter</div>
+      <div class="sub">drag to orbit</div>
+    </div>
+  </section>
 
-    <h2 class="section-title" id="about">About</h2>
-    <p>I'm the co-founder of Symphony Neurosciences. I studied Psychological & Brain Sciences at UCSB and split time between research and building product.</p>
-    <p>Elsewhere: <a href="https://www.linkedin.com/">LinkedIn</a> · <a href="https://github.com/">GitHub</a> · <a href="https://x.com/">X</a></p>
+  <!-- Existing site content (revealed after enter) -->
+  <main class="site" id="site">
+    <div class="wrap">
+      <header>
+        <h1>Toby Gollan-Myers</h1>
+      </header>
 
-    <h2 class="section-title" id="writing">Writing</h2>
-    <h3>Foray into Neurotech</h3>
-    <p><em>Personal history</em></p>
-    <p>I was first exposed to brain-altering technology when I was 19, in Greg Applebaum’s lab at UCSD ...</p>
+      <section class="hero" aria-label="3D brain">
+        <model-viewer
+          id="brain3d"
+          class="hero-brain"
+          src="./human-brain.glb"
+          alt="3D brain"
+          camera-controls
+          auto-rotate
+          camera-orbit="0deg 75deg 100%"
+          field-of-view="30deg"
+          environment-image="./env/studio_small_05_1k.hdr"
+          tone-mapping="aces"
+          exposure="0.3"
+          environment-intensity="0.5"
+          shadow-intensity="0.3">
+        </model-viewer>
+        <div id="brain-status" class="status">Loading 3D model…</div>
+      </section>
 
-    <footer>© <span id="y"></span> Toby Gollan-Myers</footer>
+      <h2 class="section-title" id="about">About</h2>
+      <p>I'm the co-founder of Symphony Neurosciences. I studied Psychological & Brain Sciences at UCSB and split time between research and building product.</p>
+      <p>Elsewhere: <a href="https://www.linkedin.com/">LinkedIn</a> · <a href="https://github.com/">GitHub</a> · <a href="https://x.com/">X</a></p>
+
+      <h2 class="section-title" id="writing">Writing</h2>
+      <h3>Foray into Neurotech</h3>
+      <p><em>Personal history</em></p>
+      <p>I was first exposed to brain-altering technology when I was 19, in Greg Applebaum’s lab at UCSD ...</p>
+
+      <footer>© <span id="y"></span> Toby Gollan-Myers</footer>
+    </div>
   </main>
 
   <script type="module">
+    // Footer year
     document.getElementById('y').textContent = new Date().getFullYear();
+
+    // Element refs
+    const intro = document.getElementById('intro');
+    const enterBtn = document.getElementById('enterBtn');
+    const introBrain = document.getElementById('introBrain');
     const mv = document.getElementById('brain3d');
     const status = document.getElementById('brain-status');
 
+    // Deep metallic red material (applied to both brains)
+    function applyMetallicRed(modelViewer){
+      (modelViewer.model?.materials || []).forEach(m => {
+        if (m.unlit) return;
+        const p = m.pbrMetallicRoughness;
+        p?.setBaseColorFactor?.([0.55, 0.02, 0.02, 1]);
+        p?.setMetallicFactor?.(0.95);
+        p?.setRoughnessFactor?.(0.30);
+        m?.setEmissiveFactor?.([0,0,0]);
+      });
+    }
+
+    // Apply on load for both viewers
+    introBrain.addEventListener('load', async () => { await introBrain.updateComplete; applyMetallicRed(introBrain); });
     mv.addEventListener('load', async () => {
       status.textContent = 'Loaded — drag to orbit';
       status.classList.remove('error');
-      // Remove all previous lighting/material tweaks to avoid invisibility
-      // Keep only a gentle red tint if supported
-      try {
-        await mv.updateComplete;
-        (mv.model?.materials || []).forEach(m => {
-          const pbr = m?.pbrMetallicRoughness;
-          pbr?.setBaseColorFactor?.([1,0,0,1]);
-        });
-      } catch {}
-    });
-      try {
-        await mv.updateComplete;
-        (mv.model?.materials || []).forEach(m => {
-          const pbr = m?.pbrMetallicRoughness;
-          // kill glare
-          pbr?.setMetallicFactor?.(0.0);
-          pbr?.setRoughnessFactor?.(0.9);
-          // ensure no accidental emissive glow
-          m?.setEmissiveFactor?.([0,0,0]);
-          // tint red
-          pbr?.setBaseColorFactor?.([1,0,0,1]);
-          // disable clearcoat/sheen if present
-          m?.clearcoatTexture?.setTexture?.(null); // defensive, ignored if absent
-          m?.sheenColorTexture?.setTexture?.(null);
-        });
-      } catch {}
-    });
-      try {
-        await mv.updateComplete;
-        (mv.model?.materials || []).forEach(m => m?.pbrMetallicRoughness?.setBaseColorFactor?.([1,0,0,1]));
-      } catch {}
+      await mv.updateComplete; applyMetallicRed(mv);
     });
 
     mv.addEventListener('error', () => {
@@ -122,6 +137,14 @@ mv.addEventListener('load', async () => {
       const resolved = new URL(attrSrc, document.baseURI).href;
       status.textContent = `Model failed to load. Attribute src: ${attrSrc} | Resolved: ${resolved}`;
       status.classList.add('error');
+    });
+
+    // Intro → Site transition
+    enterBtn.addEventListener('click', () => {
+      // shrink the big brain, then reveal site
+      introBrain.classList.add('shrink');
+      // after the shrink anim, reveal site and fade intro
+      setTimeout(() => { document.body.classList.add('entered'); }, 560);
     });
   </script>
 </body>
