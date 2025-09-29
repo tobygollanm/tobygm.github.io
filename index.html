@@ -40,7 +40,7 @@
         field-of-view="30deg"
         environment-image="https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/hdris/studio-small-3/studio_small_03_1k.hdr"
         tone-mapping="aces"
-        exposure="0.2"
+        exposure="0.3"
         environment-intensity="0.5"
         shadow-intensity="0.01">
       </model-viewer>
@@ -54,8 +54,8 @@ mv.addEventListener('load', async () => {
     // deep red base color (not pure #FF0000, which looks plastic)
     p?.setBaseColorFactor?.([0.55, 0.02, 0.02, 1]);  // ~#8c0606
     // metallic look + tight highlights
-    p?.setMetallicFactor?.(0.95);
-    p?.setRoughnessFactor?.(0.28);                  // 0.20–0.35 is a nice “polished metal” range
+    p?.setMetallicFactor?.(0.98);
+    p?.setRoughnessFactor?.(0.20);                  // 0.20–0.35 is a nice “polished metal” range
     // no glow
     m?.setEmissiveFactor?.([0,0,0]);
   });
