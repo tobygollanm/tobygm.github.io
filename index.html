@@ -8,20 +8,19 @@
   <link rel="icon" href="./favicon.ico" />
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <style>
-    :root { --bg:#f3f4f6; --fg:#0f172a; --muted:#6b7280; --link:#0ea5e9; --maxw:880px; --dur:650ms; }
+    :root { --bg:#f3f4f6; --fg:#0f172a; --muted:#6b7280; --maxw:880px; --dur:650ms; }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{margin:0;font:16px/1.65 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--fg);background:var(--bg)}
 
     /* Intro (landing) */
     .intro{position:fixed;inset:0;display:grid;place-items:center;background:var(--bg);z-index:50;transition:opacity var(--dur) ease, transform var(--dur) ease}
-    .intro__wrap{display:flex;flex-direction:column;align-items:center;gap:14px}
+    .intro__wrap{display:flex;flex-direction:column;align-items:center;gap:14px;position:relative}
     .intro h1{margin:0 0 6px;font-size:clamp(32px,5.5vw,64px)}
-    .intro .sub{color:var(--muted);font-size:.98rem;margin-top:2px}
-    model-viewer.intro-brain{width:min(56vmin,360px);height:min(56vmin,360px);display:block}
+    model-viewer.intro-brain{width:min(56vmin,360px);height:min(56vmin,360px);display:block;transition:transform var(--dur) ease}
+    .intro__below{position:fixed;left:0;right:0;bottom:8vh;display:flex;justify-content:center;gap:10px;transform:translateY(40vh);opacity:0;transition:transform var(--dur) ease, opacity var(--dur) ease}
     .enter{cursor:pointer;margin-top:8px;font-size:.95rem;color:var(--muted);text-decoration:underline;text-underline-offset:3px}
     .enter:hover{color:var(--fg)}
-    .shrink { transform: scale(.22); transition: transform var(--dur) ease; transform-origin:center }
 
     /* Site content */
     .site{opacity:0;transform:scale(.985);transition:opacity var(--dur) ease, transform var(--dur) ease}
@@ -30,14 +29,18 @@
     header h1{margin:4px 0 16px;font-size:clamp(28px,3.5vw,44px)}
     .hero{display:flex;flex-direction:column;align-items:center;margin:8px auto 18px}
     model-viewer.hero-brain{width:260px;height:260px;display:block}
-    .status{color:var(--muted);font-size:.95rem;margin-top:8px;text-align:center}
-    .status.error{color:#b91c1c}
     .section-title{margin:28px 0 12px;font-size:1.05rem;letter-spacing:.3px;text-transform:uppercase;color:var(--muted)}
     footer{margin:34px 0 10px;color:var(--muted);font-size:.92rem;text-align:center}
 
-    /* After enter */
+    /* Entered/animating states */
     body.entered .intro{opacity:0;pointer-events:none}
     body.entered .site{opacity:1;transform:scale(1)}
+    body.animating #introBrain{transform:translateY(-40vh) scale(.22)}
+    body.animating .intro__below{transform:translateY(-10vh);opacity:1}
+
+    /* Remove model-viewer UI & drop shadow */
+    model-viewer::part(default-progress-bar){display:none !important;height:0 !important}
+    model-viewer::part(canvas){box-shadow:none !important;filter:none !important;outline:none !important}
   </style>
 </head>
 <body>
@@ -45,24 +48,29 @@
   <!-- Landing intro -->
   <section class="intro" id="intro">
     <div class="intro__wrap">
-      <h1>Toby Gollan‑Myers</h1>
+      <h1>Toby Gollan-Myers</h1>
+
+      <!-- Use EXACT links you provided -->
       <model-viewer id="introBrain" class="intro-brain"
         src="https://tobygollanm.github.io/tobygm.github.io/human-brain.glb"
         alt="3D brain"
         camera-controls
+        disable-zoom
         auto-rotate
+        rotation-per-second="60deg"
         environment-image="https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/hdris/studio-small-3/studio_small_03_1k.hdr"
         tone-mapping="aces"
         exposure="0.35"
-        environment-intensity="0.85"
-        shadow-intensity="0.6">
+        environment-intensity="0.85">
       </model-viewer>
-      <div class="enter" id="enterBtn">enter</div>
-      <div class="sub">drag to orbit</div>
+
+      <div class="intro__below">
+        <div class="enter" id="enterBtn">enter</div>
+      </div>
     </div>
   </section>
 
-  <!-- Existing site content (revealed after enter) -->
+  <!-- Main site -->
   <main class="site" id="site">
     <div class="wrap">
       <header>
@@ -76,16 +84,16 @@
           src="https://tobygollanm.github.io/tobygm.github.io/human-brain.glb"
           alt="3D brain"
           camera-controls
+          disable-zoom
           auto-rotate
+          rotation-per-second="60deg"
           camera-orbit="0deg 75deg 100%"
           field-of-view="30deg"
           environment-image="https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/hdris/studio-small-3/studio_small_03_1k.hdr"
           tone-mapping="aces"
           exposure="0.3"
-          environment-intensity="0.5"
-          shadow-intensity="0.3">
+          environment-intensity="0.5">
         </model-viewer>
-        <div id="brain-status" class="status">Loading 3D model…</div>
       </section>
 
       <h2 class="section-title" id="about">About</h2>
@@ -105,45 +113,30 @@
     // Footer year
     document.getElementById('y').textContent = new Date().getFullYear();
 
-    // Element refs
-    const intro = document.getElementById('intro');
+    // Refs
     const enterBtn = document.getElementById('enterBtn');
     const introBrain = document.getElementById('introBrain');
-    const mv = document.getElementById('brain3d');
-    const status = document.getElementById('brain-status');
+    const mvIntro = introBrain;
+    const mvMain  = document.getElementById('brain3d');
 
-    // Deep metallic red material (applied to both brains)
-    function applyMetallicRed(modelViewer){
-      (modelViewer.model?.materials || []).forEach(m => {
+    // Deep metallic red material
+    function applyMetallicRed(viewer){
+      (viewer.model?.materials || []).forEach(m => {
         if (m.unlit) return;
         const p = m.pbrMetallicRoughness;
-        p?.setBaseColorFactor?.([0.55, 0.02, 0.02, 1]);
+        p?.setBaseColorFactor?.([0.55, 0.02, 0.02, 1]); // deep red
         p?.setMetallicFactor?.(0.95);
         p?.setRoughnessFactor?.(0.30);
         m?.setEmissiveFactor?.([0,0,0]);
       });
     }
 
-    // Apply on load for both viewers
-    introBrain.addEventListener('load', async () => { await introBrain.updateComplete; applyMetallicRed(introBrain); });
-    mv.addEventListener('load', async () => {
-      status.textContent = 'Loaded — drag to orbit';
-      status.classList.remove('error');
-      await mv.updateComplete; applyMetallicRed(mv);
-    });
+    mvIntro.addEventListener('load', async () => { await mvIntro.updateComplete; applyMetallicRed(mvIntro); });
+    mvMain .addEventListener('load',  async () => { await mvMain .updateComplete; applyMetallicRed(mvMain ); });
 
-    mv.addEventListener('error', () => {
-      const attrSrc = mv.getAttribute('src');
-      const resolved = new URL(attrSrc, document.baseURI).href;
-      status.textContent = `Model failed to load. Attribute src: ${attrSrc} | Resolved: ${resolved}`;
-      status.classList.add('error');
-    });
-
-    // Intro → Site transition
+    // Enter animation: shrink brain up, bring up text, then reveal site
     enterBtn.addEventListener('click', () => {
-      // shrink the big brain, then reveal site
-      introBrain.classList.add('shrink');
-      // after the shrink anim, reveal site and fade intro
+      document.body.classList.add('animating');
       setTimeout(() => { document.body.classList.add('entered'); }, 560);
     });
   </script>
