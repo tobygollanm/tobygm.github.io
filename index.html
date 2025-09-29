@@ -8,37 +8,30 @@
   <link rel="icon" href="./favicon.ico" />
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <style>
-    :root { --bg:#f3f4f6; --fg:#0f172a; --muted:#6b7280; --link:#0ea5e9; --maxw:880px; --dur:700ms; }
+    :root { --bg:#f3f4f6; --fg:#0f172a; --muted:#6b7280; --link:#0ea5e9; --maxw:880px; --dur:700ms; --ease:cubic-bezier(.2,.7,.2,1); }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{margin:0;font:16px/1.65 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--fg);background:var(--bg)}
 
     /* Intro (landing) */
-    .intro{position:fixed;inset:0;display:grid;place-items:center;background:var(--bg);z-index:50;transition:opacity var(--dur) ease, transform var(--dur) ease}
-    .intro__wrap{display:flex;flex-direction:column;align-items:center;gap:26px}
-    .intro h1{margin:0 0 12px;font-size:clamp(18px,3vw,32px)} /* 2x smaller */
-    model-viewer.intro-brain{width:min(28vmin,180px);height:min(28vmin,180px);display:block;margin-top:8px} /* 2x smaller */
-   .enter {
-  cursor: pointer;
-  margin-top: 20px; /* more space below brain */
-  font-size: 1.1rem; /* slightly bigger again */
-  color: var(--fg); /* use full foreground color, not muted */
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-.enter:hover {
-  color: var(--link);
-}
+    .intro{position:fixed;inset:0;display:block;background:var(--bg);z-index:50}
+    .intro__wrap{position:relative;width:100%;height:100%}
+    /* Header in intro sits EXACTLY where the site header will be */
+    .introHeader{position:absolute;top:28px;left:0;right:0;display:flex;justify-content:center}
+    .introHeader h1{margin:4px 0 16px;font-size:clamp(28px,3.5vw,44px)}
 
+    /* Brain starts perfectly centered */
+    #introBrain{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(1);width:min(28vmin,180px);height:min(28vmin,180px)}
+    /* Enter button initially sits under centered brain; JS nudges it precisely */
+    #enterBtn{position:absolute;left:50%;transform:translateX(-50%);cursor:pointer;font-size:1.1rem;color:var(--fg);font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+    #enterBtn:hover{color:var(--link)}
 
-    /* Animation states */
-    .intro.animating #introBrain{transform:translateY(-22vh) scale(.22);transition:transform var(--dur) ease;transform-origin:center}
-    .intro__below{transform:translateY(50vh);opacity:0;transition:transform var(--dur) ease, opacity var(--dur) ease}
-    .intro.animating .intro__below{transform:translateY(-22vh);opacity:1}
+    /* Animation state: no fades. Brain shrinks & moves under header; site slides up */
+    body.entering .site{transform:translateY(0)}
+    body.entered .intro{display:none}
 
     /* Site content */
-    .site{opacity:0;transform:scale(.985);transition:opacity var(--dur) ease, transform var(--dur) ease}
+    .site{transform:translateY(100vh); transition:transform var(--dur) var(--ease)}
     .wrap{max-width:var(--maxw);margin:0 auto;padding:28px 18px 40px}
     header{display:flex;justify-content:center}
     header h1{margin:4px 0 16px;font-size:clamp(28px,3.5vw,44px)}
@@ -47,39 +40,33 @@
     .section-title{margin:28px 0 12px;font-size:1.05rem;letter-spacing:.3px;text-transform:uppercase;color:var(--muted)}
     footer{margin:34px 0 10px;color:var(--muted);font-size:.92rem;text-align:center}
 
-    /* Transition to site */
-    body.entered .intro{opacity:0;pointer-events:none}
-    body.entered .site{opacity:1;transform:scale(1)}
-
-    /* Remove model-viewer drop shadow */
-    model-viewer::part(default-progress-bar) { display: none; }
-    model-viewer::part(canvas) { box-shadow:none !important; filter:none !important; }
+    /* Remove any default canvas/drop shadows */
+    model-viewer::part(default-progress-bar){display:none}
+    model-viewer::part(canvas){box-shadow:none !important;filter:none !important}
   </style>
 </head>
 <body>
   <!-- Landing intro -->
   <section class="intro" id="intro">
     <div class="intro__wrap">
-      <h1>Toby Gollan‑Myers</h1>
-      <model-viewer id="introBrain" class="intro-brain"
+      <div class="introHeader" id="introHeader"><h1>Toby Gollan‑Myers</h1></div>
+      <model-viewer id="introBrain"
         src="https://tobygollanm.github.io/tobygm.github.io/human-brain.glb"
         alt="3D brain"
         camera-controls
         disable-zoom
         auto-rotate
-        rotation-per-second="60deg"  
+        rotation-per-second="60deg"
         environment-image="https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/hdris/studio-small-3/studio_small_03_1k.hdr"
         tone-mapping="aces"
         exposure="0.35"
         environment-intensity="0.85">
       </model-viewer>
-      <div class="intro__below">
-        <div class="enter" id="enterBtn">enter</div>
-      </div>
+      <div class="enter" id="enterBtn">enter</div>
     </div>
   </section>
 
-  <!-- Site content (revealed after enter) -->
+  <!-- Existing site content (revealed after enter) -->
   <main class="site" id="site">
     <div class="wrap">
       <header>
@@ -119,9 +106,30 @@
   </main>
 
   <script type="module">
-    document.getElementById('y').textContent = new Date().getFullYear();
+    // Footer year (if present)
+    const yearEl = document.getElementById('y');
+    if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-    // Material styling
+    // Elements
+    const intro = document.getElementById('intro');
+    const introHeader = document.getElementById('introHeader');
+    const introBrain = document.getElementById('introBrain');
+    const enterBtn = document.getElementById('enterBtn');
+    const site = document.getElementById('site');
+
+    // Position the ENTER button initially just below the centered brain
+    function placeEnterBelowBrain(){
+      const br = introBrain.getBoundingClientRect();
+      const top = window.scrollY + br.top + br.height/2 + 24; // 24px gap below brain
+      enterBtn.style.top = `${top}px`;
+    }
+    window.addEventListener('resize', placeEnterBelowBrain);
+    introBrain.addEventListener('load', () => {
+      // After the brain canvas measures, place the button
+      setTimeout(placeEnterBelowBrain, 0);
+    });
+
+    // Deep metallic red (apply to both brains if present)
     function applyMetallicRed(modelViewer){
       (modelViewer.model?.materials || []).forEach(m => {
         if (m.unlit) return;
@@ -132,20 +140,26 @@
         m?.setEmissiveFactor?.([0,0,0]);
       });
     }
-
-    const intro = document.getElementById('intro');
-    const enterBtn = document.getElementById('enterBtn');
-    const introBrain = document.getElementById('introBrain');
-    const mv = document.getElementById('brain3d');
-
     introBrain.addEventListener('load', async () => { await introBrain.updateComplete; applyMetallicRed(introBrain); });
-    mv.addEventListener('load', async () => { await mv.updateComplete; applyMetallicRed(mv); });
+    const mainMV = document.getElementById('brain3d');
+    if (mainMV) mainMV.addEventListener('load', async () => { await mainMV.updateComplete; applyMetallicRed(mainMV); });
 
-    // Intro → Site animation
+    // On ENTER: move & shrink brain under header; slide site up; no fades
     enterBtn.addEventListener('click', () => {
-      intro.classList.add('animating');
-      // After animation completes, reveal site
-      setTimeout(() => { document.body.classList.add('entered'); }, parseInt(getComputedStyle(document.documentElement).getPropertyValue('--dur')));
+      const headerRect = introHeader.getBoundingClientRect();
+      const brainRect = introBrain.getBoundingClientRect();
+      const targetTop = window.scrollY + headerRect.bottom + 16; // 16px below header
+      const scale = 0.5; // shrink to 50%
+
+      // Animate brain to the header
+      introBrain.style.transition = `top var(--dur) var(--ease), transform var(--dur) var(--ease)`;
+      introBrain.style.top = `${targetTop}px`;
+      introBrain.style.transform = `translateX(-50%) scale(${scale})`;
+
+      // Slide the site up from the bottom simultaneously
+      document.body.classList.add('entering');
+      // After animation completes, hide the intro layer
+      setTimeout(() => { document.body.classList.add('entered'); document.body.classList.remove('entering'); }, 760);
     });
   </script>
 </body>
