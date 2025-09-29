@@ -20,7 +20,7 @@
 
     /* Centered hero brain */
     .hero{display:flex;flex-direction:column;align-items:center;margin:8px auto 18px;}
-    model-viewer.hero-brain{width:240px;height:240px;display:block;}
+    model-viewer.hero-brain{width:240px;height:240px;display:block;background:#e5e7eb;border-radius:14px;}
     .status{color:var(--muted);font-size:.95rem;margin-top:8px;text-align:center}
     .status.error{color:#b91c1c}
 
@@ -37,7 +37,8 @@
     <!-- Centered 3D brain above About -->
     <section class="hero" aria-label="3D brain">
       <model-viewer id="brain3d" class="hero-brain" src="./human-brain.glb"
-        alt="3D brain" camera-controls auto-rotate shadow-intensity="0.4"></model-viewer>
+        alt="3D brain" camera-controls auto-rotate
+        shadow-intensity="0.2" environment-intensity="0.35"></model-viewer>
       <div id="brain-status" class="status">Loading 3D model…</div>
     </section>
 
@@ -64,6 +65,15 @@
     mv.addEventListener('load', () => {
       status.textContent = 'Loaded — drag to orbit';
       status.classList.remove('error');
+      try {
+        // Soften lighting to avoid blown-out highlights
+        if (typeof mv.exposure === 'number') mv.exposure = 0.75; // lower exposure
+        if (typeof mv.environmentIntensity === 'number') mv.environmentIntensity = 0.35; // dim IBL
+        if (typeof mv.shadowIntensity === 'number') mv.shadowIntensity = 0.2; // softer shadows
+        // Optional tone mapping if supported
+        if ('toneMapping' in mv) mv.toneMapping = 'aces';
+      } catch {}
+    });
     });
 
     mv.addEventListener('error', () => {
