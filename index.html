@@ -36,7 +36,6 @@
 
     <!-- Centered 3D brain above About -->
     <section class="hero" aria-label="3D brain">
-      <!-- cleaned up: removed assets folder usage -->
       <model-viewer id="brain3d" class="hero-brain" src="./human-brain.glb"
         alt="3D brain" camera-controls auto-rotate shadow-intensity="0.4"></model-viewer>
       <div id="brain-status" class="status">Loading 3D model…</div>
@@ -62,13 +61,9 @@
     const mv = document.getElementById('brain3d');
     const status = document.getElementById('brain-status');
 
-    mv.addEventListener('load', async () => {
+    mv.addEventListener('load', () => {
       status.textContent = 'Loaded — drag to orbit';
       status.classList.remove('error');
-      try {
-        await mv.updateComplete;
-        (mv.model?.materials || []).forEach(m => m?.pbrMetallicRoughness?.setBaseColorFactor?.([1,0,0,1]));
-      } catch {}
     });
 
     mv.addEventListener('error', () => {
@@ -77,8 +72,6 @@
       status.textContent = `Model failed to load. Attribute src: ${attrSrc} | Resolved: ${resolved}`;
       status.classList.add('error');
       console.warn('Model load error — tried attribute src:', attrSrc, 'resolved to:', resolved);
-    });
-      console.warn('Model load error — verify that the file exists at the specified URL.');
     });
   </script>
 </body>
