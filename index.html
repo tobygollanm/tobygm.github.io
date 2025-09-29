@@ -37,19 +37,13 @@
     </header>
 
     <section class="hero" aria-label="3D brain">
-      <!-- Robust, known-good <model-viewer> configuration -->
       <model-viewer
         id="brain3d"
         class="hero-brain"
-        src="./human-brain.glb"
+        src="https://tobygollanm.github.io/tobygm.github.io/human-brain.glb"
         alt="3D brain"
         camera-controls
-        auto-rotate
-        ar-modes="webxr scene-viewer quick-look"
-        exposure="0.15"
-        shadow-intensity="0.25"
-        environment-image="https://modelviewer.dev/shared-assets/environments/moonless_golf_2k.hdr"
-        tone-mapping="aces">
+        auto-rotate>
       </model-viewer>
       <div id="brain-status" class="status">Loading 3D model…</div>
     </section>
@@ -77,6 +71,11 @@
     mv.addEventListener('load', async () => {
       status.textContent = 'Loaded — drag to orbit';
       status.classList.remove('error');
+      try {
+        await mv.updateComplete;
+        (mv.model?.materials || []).forEach(m => m?.pbrMetallicRoughness?.setBaseColorFactor?.([1,0,0,1]));
+      } catch {}
+    });
       try {
         await mv.updateComplete;
         // tame highlights and tint slightly red
