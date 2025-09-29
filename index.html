@@ -37,7 +37,7 @@
     <!-- Centered 3D brain above About -->
     <section class="hero" aria-label="3D brain">
       <!-- cleaned up: removed assets folder usage -->
-      <model-viewer id="brain3d" class="hero-brain" src="https://tobygollanm.github.io/tobygm.github.io/human-brain.glb"
+      <model-viewer id="brain3d" class="hero-brain" src="./human-brain.glb"
         alt="3D brain" camera-controls auto-rotate shadow-intensity="0.4"></model-viewer>
       <div id="brain-status" class="status">Loading 3D model…</div>
     </section>
@@ -72,8 +72,12 @@
     });
 
     mv.addEventListener('error', () => {
-      status.textContent = `Model failed to load. Tried: ${mv.src}`;
+      const attrSrc = mv.getAttribute('src');
+      const resolved = new URL(attrSrc, document.baseURI).href;
+      status.textContent = `Model failed to load. Attribute src: ${attrSrc} | Resolved: ${resolved}`;
       status.classList.add('error');
+      console.warn('Model load error — tried attribute src:', attrSrc, 'resolved to:', resolved);
+    });
       console.warn('Model load error — verify that the file exists at the specified URL.');
     });
   </script>
