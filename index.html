@@ -8,41 +8,56 @@
   <link rel="icon" href="./favicon.ico" />
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <style>
-    :root { --bg:#f3f4f6; --fg:#0f172a; --muted:#6b7280; --link:#0ea5e9; --maxw:880px; --dur:700ms; --ease:cubic-bezier(.2,.7,.2,1); }
+    :root { --bg:#f3f4f6; --fg:#0f172a; --muted:#6b7280; --link:#0ea5e9; --maxw:880px; --dur:700ms; --ease:cubic-bezier(.2,.7,.2,1); --brainSize:min(28vmin,180px); }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{margin:0;font:16px/1.65 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--fg);background:var(--bg)}
+    body:not(.entered){overflow:hidden;height:100vh}
 
     /* Intro (landing) */
     .intro{position:fixed;inset:0;display:block;background:var(--bg);z-index:50}
     .intro__wrap{position:relative;width:100%;height:100%}
     /* Header in intro sits EXACTLY where the site header will be */
     .introHeader{position:absolute;top:28px;left:0;right:0;display:flex;justify-content:center}
-    .introHeader h1{margin:4px 0 16px;font-size:clamp(28px,3.5vw,44px)}
+    /* Unify header typography and spacing for both headers */
+    .introHeader h1, header h1{margin:4px 0 16px;font-size:clamp(28px,3.5vw,44px);line-height:1.15}
 
     /* Brain starts perfectly centered */
-    #introBrain{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(1);width:min(28vmin,180px);height:min(28vmin,180px)}
-    /* Enter button initially sits under centered brain; JS nudges it precisely */
-    #enterBtn{position:absolute;left:50%;transform:translateX(-50%);cursor:pointer;font-size:1.1rem;color:var(--fg);font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+    #introBrain{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:var(--brainSize);height:var(--brainSize)}
+    /* Enter button: hidden until brain loads */
+    #enterBtn{position:absolute;left:50%;transform:translateX(-50%);cursor:pointer;font-size:0.88rem;color:var(--fg);font-weight:500;text-transform:uppercase;letter-spacing:.05em;margin-top:0;display:none}
     #enterBtn:hover{color:var(--link)}
 
-    /* Animation state: no fades. Brain shrinks & moves under header; site slides up */
-    body.entering .site{transform:translateY(0)}
+    /* Animation state: site slides in vertically only; no header fade */
+    body.entering .site{top:0}
     body.entered .intro{display:none}
+    body.entered .site{position:static;top:auto;transition:none}
 
-    /* Site content */
-    .site{transform:translateY(100vh); transition:transform var(--dur) var(--ease)}
+    /* Site content (pinned during transition so it doesn't push layout) */
+    .site{position:fixed;left:0;right:0;top:100vh;transition:top var(--dur) var(--ease)}
     .wrap{max-width:var(--maxw);margin:0 auto;padding:28px 18px 40px}
     header{display:flex;justify-content:center}
-    header h1{margin:4px 0 16px;font-size:clamp(28px,3.5vw,44px)}
-    .hero{display:flex;flex-direction:column;align-items:center;margin:8px auto 18px}
-    model-viewer.hero-brain{width:260px;height:260px;display:block}
+
+    /* Dock just beneath the main header; we place the SAME brain here */
+    #brainDock{position:relative;height:var(--brainSize);margin-top:16px}
+
     .section-title{margin:28px 0 12px;font-size:1.05rem;letter-spacing:.3px;text-transform:uppercase;color:var(--muted)}
     footer{margin:34px 0 10px;color:var(--muted);font-size:.92rem;text-align:center}
 
     /* Remove any default canvas/drop shadows */
     model-viewer::part(default-progress-bar){display:none}
     model-viewer::part(canvas){box-shadow:none !important;filter:none !important}
+
+    /* Replace the interaction prompt “hand” with a smaller light gray circle */
+    model-viewer::part(interaction-prompt){
+      width:40px;height:40px; /* base size; model-viewer scales it; we’ll also scale below */
+      background:none !important;
+      border-radius:9999px;
+      border:2px solid #cbd5e1; /* light gray */
+      box-shadow:0 1px 2px rgba(0,0,0,.06);
+      transform:translate(-50%,-50%) scale(.8); /* 20% smaller */
+      opacity:.9;
+    }
   </style>
 </head>
 <body>
@@ -50,18 +65,191 @@
   <section class="intro" id="intro">
     <div class="intro__wrap">
       <div class="introHeader" id="introHeader"><h1>Toby Gollan‑Myers</h1></div>
-      <model-viewer id="introBrain"
-        src="https://tobygollanm.github.io/tobygm.github.io/human-brain.glb"
-        alt="3D brain"
-        camera-controls
-        disable-zoom
-        auto-rotate
-        rotation-per-second="60deg"
-        environment-image="https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/hdris/studio-small-3/studio_small_03_1k.hdr"
-        tone-mapping="aces"
-        exposure="0.35"
-        environment-intensity="0.85">
-      </model-viewer>
+    
+<model-viewer id="introBrain"
+  src="https://tobygollanm.github.io/tobygm.github.io/human-brain.glb"
+  alt="3D brain"
+  camera-controls
+  disable-zoom
+  auto-rotate
+  auto-rotate-delay="0"
+  rotation-per-second="20deg"
+  interaction-prompt="none"
+  environment-image="https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/hdris/studio-small-3/studio_small_03_1k.hdr"
+  tone-mapping="aces"
+  exposure="0.35"
+  environment-intensity="0.85">
+</model-viewer>
+
+<style>
+  /* Custom prompt (replaces hand). Hidden by default; shown via .showPrompt */
+  #introBrain::before{
+    content:"";
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%) scale(.8);
+    width:40px;
+    height:40px;
+    border:2px solid #cbd5e1;
+    border-radius:9999px;
+    box-shadow:0 1px 2px rgba(0,0,0,.06);
+    opacity:.9;
+    pointer-events:none;
+    display:none;
+  }
+  #introBrain.showPrompt::before{display:block}
+
+  /* Small light gray dot cursor on hover */
+  #introBrain:hover{
+    cursor:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16'><circle cx='8' cy='8' r='3' fill='%23cbd5e1'/></svg>") 8 8, auto;
+  }
+</style>
+
+<script type="module">
+  const introBrain = document.getElementById('introBrain');
+
+  // Disable built-in autorotate/delay; we drive rotation ourselves.
+  introBrain.addEventListener('load', () => {
+    introBrain.removeAttribute('auto-rotate');
+    introBrain.autoRotate = false;
+    introBrain.autoRotateDelay = 0;
+    startAutoRotate(performance.now());
+  });
+
+  // --- utils ---
+  function clampPhi(phi){
+    const min = 5 * Math.PI/180, max = 175 * Math.PI/180;
+    return Math.min(max, Math.max(min, phi));
+  }
+  function writeOrbit(theta, phi, radius){
+    introBrain.cameraOrbit = `${theta}rad ${phi}rad ${radius}`;
+  }
+
+  // --- custom autorotate (immediate tick with dt=0 on resume) ---
+  const AUTO_ROTATE_DEG_PER_SEC = 20; // match your visual preference
+  let isAutoRotating = false;
+  let autoId = null;
+  let lastAutoTs = 0;
+
+  function autoStep(now){
+    if (!isAutoRotating) return;
+
+    // Force zero dt on the first tick after resume/handoff
+    let dt;
+    if (!lastAutoTs) {
+      dt = 0;
+    } else {
+      dt = (now - lastAutoTs) / 0000;
+      if (!(dt > 0 && isFinite(dt))) dt = 0;
+      else dt = Math.min(dt, 0.033); // clamp to ~33ms to avoid jumps
+    }
+    lastAutoTs = now;
+
+    const orbit = introBrain.getCameraOrbit();
+    const nextTheta = orbit.theta + (AUTO_ROTATE_DEG_PER_SEC * Math.PI/180) * dt;
+    writeOrbit(nextTheta, clampPhi(orbit.phi), orbit.radius);
+
+    autoId = requestAnimationFrame(autoStep);
+  }
+
+  function startAutoRotate(now){
+    if (isAutoRotating) return;
+    isAutoRotating = true;
+    lastAutoTs = 0; // guarantees first tick uses dt=0
+    autoStep(now ?? performance.now()); // run immediately this frame
+  }
+
+  function stopAutoRotate(){
+    isAutoRotating = false;
+    if (autoId){ cancelAnimationFrame(autoId); autoId = null; }
+  }
+
+  // --- inertia (20% longer), seamless handoff to autorotate in SAME frame ---
+  let momentumId = null;
+  let angularVel = 0; // deg/s
+  let lastTheta = null;
+  let lastTs = 0;
+
+  const MOMENTUM_BOOST = 1.95;   // stronger kick (+~30% vs 1.5)
+  const MOMENTUM_DECAY = 0.966;  // 20% longer glide
+  const STOP_THRESHOLD = 0.015;  // lower stop speed
+
+  function cancelMomentum(){
+    if (momentumId){ cancelAnimationFrame(momentumId); momentumId = null; }
+  }
+
+  function momentumStep(prevNow){
+    return function step(now){
+      const dt = (now - prevNow) / 1000;
+      prevNow = now;
+
+      const orbit = introBrain.getCameraOrbit();
+      const nextTheta = orbit.theta + (angularVel * Math.PI/180) * dt;
+      writeOrbit(nextTheta, clampPhi(orbit.phi), orbit.radius);
+
+      angularVel *= MOMENTUM_DECAY;
+
+      if (Math.abs(angularVel) > STOP_THRESHOLD){
+        momentumId = requestAnimationFrame(step);
+      } else {
+        angularVel = 0;
+        momentumId = null;
+        // Seamless handoff: start autorotate now and tick in the same frame
+        stopAutoRotate();
+        startAutoRotate(now);
+      }
+    };
+  }
+
+  function startMomentum(){
+    cancelMomentum();
+    angularVel *= MOMENTUM_BOOST;
+    const now = performance.now();
+    momentumId = requestAnimationFrame(momentumStep(now));
+  }
+
+  // --- interaction wiring ---
+  function onPointerMove(){
+    const now = performance.now();
+    const orbit = introBrain.getCameraOrbit();
+    if (lastTheta != null){
+      const dTheta = orbit.theta - lastTheta; // radians
+      const dt = (now - lastTs) / 1000;
+      if (dt > 0){
+        angularVel = (dTheta * 180/Math.PI) / dt; // deg/s
+      }
+    }
+    lastTheta = orbit.theta;
+    lastTs = now;
+  }
+
+  function onPointerDown(){
+    stopAutoRotate();
+    cancelMomentum();
+    lastTheta = null;
+    lastTs = performance.now();
+    introBrain.addEventListener('pointermove', onPointerMove);
+  }
+
+  function onPointerUp(){
+    introBrain.removeEventListener('pointermove', onPointerMove);
+    if (Math.abs(angularVel) > 0.01){
+      startMomentum();
+    } else {
+      // No inertia → resume autorotate immediately with immediate tick
+      startAutoRotate(performance.now());
+    }
+  }
+
+  introBrain.addEventListener('pointerdown', onPointerDown);
+  introBrain.addEventListener('pointerup', onPointerUp);
+  introBrain.addEventListener('pointercancel', onPointerUp);
+  introBrain.addEventListener('mouseleave', (e) => { if (e.buttons === 0) onPointerUp(); });
+
+  // Keep loops alive across scroll (no-op)
+  window.addEventListener('scroll', () => {}, { passive: true });
+</script>
       <div class="enter" id="enterBtn">enter</div>
     </div>
   </section>
@@ -73,24 +261,8 @@
         <h1>Toby Gollan-Myers</h1>
       </header>
 
-      <section class="hero" aria-label="3D brain">
-        <model-viewer
-          id="brain3d"
-          class="hero-brain"
-          src="https://tobygollanm.github.io/tobygm.github.io/human-brain.glb"
-          alt="3D brain"
-          camera-controls
-          disable-zoom
-          auto-rotate
-          rotation-per-second="60deg"
-          camera-orbit="0deg 75deg 100%"
-          field-of-view="30deg"
-          environment-image="https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/hdris/studio-small-3/studio_small_03_1k.hdr"
-          tone-mapping="aces"
-          exposure="0.3"
-          environment-intensity="0.5">
-        </model-viewer>
-      </section>
+      <!-- Dock for the SAME brain element, directly under the header -->
+      <div id="brainDock"></div>
 
       <h2 class="section-title" id="about">About</h2>
       <p>I'm the co-founder of Symphony Neurosciences. I studied Psychological & Brain Sciences at UCSB and split time between research and building product.</p>
@@ -116,20 +288,28 @@
     const introBrain = document.getElementById('introBrain');
     const enterBtn = document.getElementById('enterBtn');
     const site = document.getElementById('site');
+    const brainDock = document.getElementById('brainDock');
 
-    // Position the ENTER button initially just below the centered brain
+    // Position the ENTER button initially just below the centered brain (only after load)
     function placeEnterBelowBrain(){
       const br = introBrain.getBoundingClientRect();
-      const top = window.scrollY + br.top + br.height/2 + 24; // 24px gap below brain
+      const top = br.bottom + 96;
       enterBtn.style.top = `${top}px`;
     }
-    window.addEventListener('resize', placeEnterBelowBrain);
+
+    // Show the enter button only after the brain is ready/measured
     introBrain.addEventListener('load', () => {
-      // After the brain canvas measures, place the button
-      setTimeout(placeEnterBelowBrain, 0);
+      // Defer to ensure canvas lays out, then position and show
+      setTimeout(() => {
+        placeEnterBelowBrain();
+        enterBtn.style.display = 'block';
+      }, 0);
+    });
+    window.addEventListener('resize', () => {
+      if (enterBtn.style.display === 'block') placeEnterBelowBrain();
     });
 
-    // Deep metallic red (apply to both brains if present)
+    // Deep metallic red (same element reused)
     function applyMetallicRed(modelViewer){
       (modelViewer.model?.materials || []).forEach(m => {
         if (m.unlit) return;
@@ -141,26 +321,56 @@
       });
     }
     introBrain.addEventListener('load', async () => { await introBrain.updateComplete; applyMetallicRed(introBrain); });
-    const mainMV = document.getElementById('brain3d');
-    if (mainMV) mainMV.addEventListener('load', async () => { await mainMV.updateComplete; applyMetallicRed(mainMV); });
 
-    // On ENTER: move & shrink brain under header; slide site up; no fades
+    // On ENTER: animate brain under intro header; then dock it under main header at same spot
     enterBtn.addEventListener('click', () => {
-      const headerRect = introHeader.getBoundingClientRect();
+      // Ensure we're at top and avoid smooth-scroll artifacts
+      const root = document.documentElement;
+      const prevBehavior = root.style.scrollBehavior;
+      root.style.scrollBehavior = 'auto';
+      window.scrollTo(0, 0);
+
+      // Fix brain in place to animate without layout shift
       const brainRect = introBrain.getBoundingClientRect();
-      const targetTop = window.scrollY + headerRect.bottom + 16; // 16px below header
-      const scale = 0.5; // shrink to 50%
+      introBrain.style.position = 'fixed';
+      introBrain.style.left = '50%';
+      introBrain.style.width = 'var(--brainSize)';
+      introBrain.style.height = 'var(--brainSize)';
+      introBrain.style.transform = 'translateX(-50%)';
+      introBrain.style.top = `${brainRect.top}px`;
 
-      // Animate brain to the header
-      introBrain.style.transition = `top var(--dur) var(--ease), transform var(--dur) var(--ease)`;
-      introBrain.style.top = `${targetTop}px`;
-      introBrain.style.transform = `translateX(-50%) scale(${scale})`;
+      const headerRect = introHeader.getBoundingClientRect();
+      const targetTop = headerRect.bottom + 16;
 
-      // Slide the site up from the bottom simultaneously
+      // Animate to target (no scaling)
+      requestAnimationFrame(() => {
+        introBrain.style.transition = `top var(--dur) var(--ease)`;
+        introBrain.style.top = `${targetTop}px`;
+      });
+
+      // Slide the site up
       document.body.classList.add('entering');
-      // After animation completes, hide the intro layer
-      setTimeout(() => { document.body.classList.add('entered'); document.body.classList.remove('entering'); }, 760);
+
+      // After animation completes: reveal site and dock brain at the same visual position
+      setTimeout(() => {
+        document.body.classList.add('entered');
+        document.body.classList.remove('entering');
+
+        // Move same element into dock and keep it positioned under the main header
+        brainDock.appendChild(introBrain);
+        introBrain.style.transition = '';
+        introBrain.style.position = 'absolute';
+        introBrain.style.left = '50%';
+        introBrain.style.top = '0';
+        introBrain.style.transform = 'translateX(-50%)';
+        introBrain.style.width = 'var(--brainSize)';
+        introBrain.style.height = 'var(--brainSize)';
+
+        root.style.scrollBehavior = prevBehavior || '';
+        window.scrollTo(0, 0);
+      }, 760);
     });
   </script>
 </body>
 </html>
+```
