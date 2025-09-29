@@ -11,7 +11,7 @@
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
   <style>
-    :root { --bg:#f3f4f6; --fg:#0f172a; --muted:#6b7280; --link:#0ea5e9; --border:#e5e7eb; --card:#ffffff; --radius:16px; --maxw:880px; }
+    :root { --bg:#f3f4f6; --fg:#0f172a; --muted:#6b7280; --link:#0ea5e9; --maxw:880px; }
     *{box-sizing:border-box}
     body{margin:0;font:16px/1.65 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--fg);background:var(--bg);}
     .wrap{max-width:var(--maxw);margin:0 auto;padding:28px 18px 40px;}
@@ -20,15 +20,11 @@
 
     /* Centered hero brain */
     .hero{display:flex;flex-direction:column;align-items:center;margin:8px auto 18px;}
-    model-viewer.hero-brain{width:240px;height:240px;display:block;border-radius:var(--radius);background:var(--card);box-shadow:0 8px 24px rgba(0,0,0,.08);}
-    .status{color:var(--muted);font-size:.95rem;margin-top:8px}
+    model-viewer.hero-brain{width:240px;height:240px;display:block;}
+    .status{color:var(--muted);font-size:.95rem;margin-top:8px;text-align:center}
     .status.error{color:#b91c1c}
 
-    /* Sections */
-    .section-title{margin:22px 0 10px;font-size:1.05rem;letter-spacing:.3px;text-transform:uppercase;color:var(--muted)}
-    .post{border:1px solid var(--border);border-radius:var(--radius);background:var(--card);padding:18px;}
-    .post h2{margin:0 0 6px}
-
+    .section-title{margin:28px 0 12px;font-size:1.05rem;letter-spacing:.3px;text-transform:uppercase;color:var(--muted)}
     footer{margin:34px 0 10px;color:var(--muted);font-size:.92rem;text-align:center}
   </style>
 </head>
@@ -40,27 +36,20 @@
 
     <!-- Centered 3D brain above About -->
     <section class="hero" aria-label="3D brain">
-      <model-viewer id="brain3d" class="hero-brain"
-  src="https://tobygollanm.github.io/human-brain.glb"
-  alt="3D brain" camera-controls auto-rotate shadow-intensity="0.4">
-</model-viewer>
+      <!-- cleaned up: removed assets folder usage -->
+      <model-viewer id="brain3d" class="hero-brain" src="https://tobygollanm.github.io/human-brain.glb"
+        alt="3D brain" camera-controls auto-rotate shadow-intensity="0.4"></model-viewer>
       <div id="brain-status" class="status">Loading 3D model…</div>
     </section>
 
-    <!-- ABOUT on top -->
     <h2 class="section-title" id="about">About</h2>
-    <section class="post">
-      <p>I'm the co-founder of Symphony Neurosciences. I studied Psychological & Brain Sciences at UCSB and split time between research and building product.</p>
-      <p>Elsewhere: <a href="https://www.linkedin.com/">LinkedIn</a> · <a href="https://github.com/">GitHub</a> · <a href="https://x.com/">X</a></p>
-    </section>
+    <p>I'm the co-founder of Symphony Neurosciences. I studied Psychological & Brain Sciences at UCSB and split time between research and building product.</p>
+    <p>Elsewhere: <a href="https://www.linkedin.com/">LinkedIn</a> · <a href="https://github.com/">GitHub</a> · <a href="https://x.com/">X</a></p>
 
-    <!-- WRITING -->
     <h2 class="section-title" id="writing">Writing</h2>
-    <article class="post">
-      <h2>Foray into Neurotech</h2>
-      <div class="meta">Personal history</div>
-      <p>I was first exposed to brain-altering technology when I was 19, in Greg Applebaum’s lab at UCSD ...</p>
-    </article>
+    <h3>Foray into Neurotech</h3>
+    <p><em>Personal history</em></p>
+    <p>I was first exposed to brain-altering technology when I was 19, in Greg Applebaum’s lab at UCSD ...</p>
 
     <footer>
       © <span id="y"></span> Toby Gollan-Myers
