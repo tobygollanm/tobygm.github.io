@@ -14,21 +14,25 @@
     body{margin:0;font:16px/1.65 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--fg);background:var(--bg)}
     body:not(.entered){overflow:hidden;height:100vh}
 
+    /* Site-wide small grey dot cursor */
+    html, body, *{
+      cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16'><circle cx='8' cy='8' r='3' fill='%23cbd5e1'/></svg>") 8 8, auto;
+    }
+    input[type="text"], input[type="search"], input[type="email"], input[type="password"], textarea { cursor:text; }
+
     /* Intro (landing) */
     .intro{position:fixed;inset:0;display:block;background:var(--bg);z-index:50}
     .intro__wrap{position:relative;width:100%;height:100%}
-    /* Header in intro sits EXACTLY where the site header will be */
     .introHeader{position:absolute;top:28px;left:0;right:0;display:flex;justify-content:center}
-    /* Unify header typography and spacing for both headers */
     .introHeader h1, header h1{margin:4px 0 16px;font-size:clamp(28px,3.5vw,44px);line-height:1.15}
 
     /* Brain starts perfectly centered */
-    #introBrain{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:var(--brainSize);height:var(--brainSize)}
+    #introBrain{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:var(--brainSize);height:var(--brainSize);touch-action:none}
     /* Enter button: hidden until brain loads */
     #enterBtn{position:absolute;left:50%;transform:translateX(-50%);cursor:pointer;font-size:0.88rem;color:var(--fg);font-weight:500;text-transform:uppercase;letter-spacing:.05em;margin-top:0;display:none}
     #enterBtn:hover{color:var(--link)}
 
-    /* Animation state: site slides in vertically only; no header fade */
+    /* Animation state */
     body.entering .site{top:0}
     body.entered .intro{display:none}
     body.entered .site{position:static;top:auto;transition:none}
@@ -38,17 +42,42 @@
     .wrap{max-width:var(--maxw);margin:0 auto;padding:28px 18px 40px}
     header{display:flex;justify-content:center}
 
-    /* Dock just beneath the main header; we place the SAME brain here */
-    #brainDock{position:relative;height:var(--brainSize);margin-top:16px}
+    /* Hero row: headshot center aligned with left text margin, brain centered */
+    .heroRow{position:relative;height:var(--brainSize);margin:12px auto 28px}
+    #headshotWrap{position:absolute;left:0;top:50%;transform:translate(-50%,-50%);width:var(--brainSize);height:var(--brainSize);display:block}
+    #headshot{width:100%;height:100%;object-fit:cover;display:block}
+    #brainDock{position:relative;width:var(--brainSize);height:var(--brainSize);margin:0 auto}
 
-    .section-title{margin:28px 0 12px;font-size:1.05rem;letter-spacing:.3px;text-transform:uppercase;color:var(--muted)}
+    /* Slightly lower the text to accommodate the image */
+    .section-title{margin:32px 0 12px;font-size:1.05rem;letter-spacing:.3px;text-transform:uppercase;color:var(--muted)}
     footer{margin:34px 0 10px;color:var(--muted);font-size:.92rem;text-align:center}
+
+    /* Responsive: on mobile, show only the headshot (brain hidden) */
+    @media (max-width:640px){
+      #brainDock{display:none}
+      .heroRow{height:var(--brainSize);margin:8px auto 24px}
+      #headshotWrap{left:0;top:50%;transform:translate(-50%,-50%)}
+      .section-title{margin-top:24px}
+    }
 
     /* Remove any default canvas/drop shadows */
     model-viewer::part(default-progress-bar){display:none}
     model-viewer::part(canvas){box-shadow:none !important;filter:none !important}
 
-    
+    /* Replace the interaction prompt “hand” with a smaller light gray circle */
+    model-viewer::part(interaction-prompt){
+      width:40px;height:40px;background:none !important;border-radius:9999px;border:2px solid #cbd5e1;box-shadow:0 1px 2px rgba(0,0,0,.06);transform:translate(-50%,-50%) scale(.8);opacity:.9;
+    }
+
+    /* Custom prompt (hidden by default; shown via .showPrompt) */
+    #introBrain::before{
+      content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.8);width:40px;height:40px;border:2px solid #cbd5e1;border-radius:9999px;box-shadow:0 1px 2px rgba(0,0,0,.06);opacity:.9;pointer-events:none;display:none;
+    }
+    #introBrain.showPrompt::before{display:block}
+
+    /* Small light gray dot cursor on hover over viewer (matches site cursor) */
+    #introBrain:hover{
+      cursor:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16'><circle cx='8' cy='8' r='3' fill='%23cbd5e1'/></svg>") 8 8, auto;
     }
   </style>
 </head>
@@ -57,191 +86,172 @@
   <section class="intro" id="intro">
     <div class="intro__wrap">
       <div class="introHeader" id="introHeader"><h1>Toby Gollan‑Myers</h1></div>
-    
-<model-viewer id="introBrain"
-  src="https://tobygollanm.github.io/tobygm.github.io/human-brain.glb"
-  alt="3D brain"
-  camera-controls
-  disable-zoom
-  auto-rotate
-  auto-rotate-delay="0"
-  rotation-per-second="20deg"
-  interaction-prompt="none"
-  environment-image="https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/hdris/studio-small-3/studio_small_03_1k.hdr"
-  tone-mapping="aces"
-  exposure="0.35"
-  environment-intensity="0.85">
-</model-viewer>
 
-<style>
-  /* Custom prompt (replaces hand). Hidden by default; shown via .showPrompt */
-  #introBrain::before{
-    content:"";
-    position:absolute;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%) scale(.8);
-    width:40px;
-    height:40px;
-    border:2px solid #cbd5e1;
-    border-radius:9999px;
-    box-shadow:0 1px 2px rgba(0,0,0,.06);
-    opacity:.9;
-    pointer-events:none;
-    display:none;
-  }
-  #introBrain.showPrompt::before{display:block}
+      <model-viewer id="introBrain"
+        src="https://tobygollanm.github.io/tobygm.github.io/human-brain.glb"
+        alt="3D brain"
+        camera-controls
+        disable-zoom
+        disable-tap
+        auto-rotate
+        auto-rotate-delay="0"
+        rotation-per-second="30deg"
+        interaction-prompt="none"
+        environment-image="https://vazxmixjsiawhamofees.supabase.co/storage/v1/object/public/hdris/studio-small-3/studio_small_03_1k.hdr"
+        tone-mapping="aces"
+        exposure="0.35"
+        environment-intensity="0.85">
+      </model-viewer>
 
-  /* Small light gray dot cursor on hover */
-  #introBrain:hover{
-    cursor:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16'><circle cx='8' cy='8' r='3' fill='%23cbd5e1'/></svg>") 8 8, auto;
-  }
-</style>
+      <script type="module">
+        const introBrain = document.getElementById('introBrain');
 
-<script type="module">
-  const introBrain = document.getElementById('introBrain');
+        /* Block click/dblclick/wheel zoom inside model-viewer */
+        ['click','dblclick'].forEach(ev => {
+          introBrain.addEventListener(ev, e => { e.preventDefault(); }, { passive:false });
+        });
+        introBrain.addEventListener('wheel', e => { e.preventDefault(); }, { passive:false });
+        ['gesturestart','gesturechange','gestureend'].forEach(ev => {
+          introBrain.addEventListener(ev, e => { e.preventDefault(); }, { passive:false });
+        });
 
-  // Disable built-in autorotate/delay; we drive rotation ourselves.
-  introBrain.addEventListener('load', () => {
-    introBrain.removeAttribute('auto-rotate');
-    introBrain.autoRotate = false;
-    introBrain.autoRotateDelay = 0;
-    startAutoRotate(performance.now());
-  });
+        // Disable built-in autorotate/delay; we drive rotation ourselves with zero-delay resume.
+        introBrain.addEventListener('load', () => {
+          introBrain.removeAttribute('auto-rotate');
+          introBrain.autoRotate = false;
+          introBrain.autoRotateDelay = 0;
+          startAutoRotate(performance.now());
+          // Show custom prompt and "enter" button after ready
+          introBrain.classList.add('showPrompt');
+          const enterBtn = document.getElementById('enterBtn');
+          if (enterBtn){
+            const r = introBrain.getBoundingClientRect();
+            enterBtn.style.top = `${r.bottom + 96}px`;
+            enterBtn.style.display = 'block';
+            window.addEventListener('resize', () => {
+              const rr = introBrain.getBoundingClientRect();
+              enterBtn.style.top = `${rr.bottom + 96}px`;
+            });
+          }
+        });
 
-  // --- utils ---
-  function clampPhi(phi){
-    const min = 5 * Math.PI/180, max = 175 * Math.PI/180;
-    return Math.min(max, Math.max(min, phi));
-  }
-  function writeOrbit(theta, phi, radius){
-    introBrain.cameraOrbit = `${theta}rad ${phi}rad ${radius}`;
-  }
+        function clampPhi(phi){
+          const min = 5 * Math.PI/180, max = 175 * Math.PI/180;
+          return Math.min(max, Math.max(min, phi));
+        }
+        function writeOrbit(theta, phi, radius){
+          introBrain.cameraOrbit = `${theta}rad ${phi}rad ${radius}`;
+        }
 
-  // --- custom autorotate (immediate tick with dt=0 on resume) ---
-  const AUTO_ROTATE_DEG_PER_SEC = 20; // match your visual preference
-  let isAutoRotating = false;
-  let autoId = null;
-  let lastAutoTs = 0;
+        /* Custom autorotate (immediate tick with dt=0 on resume) */
+        const AUTO_ROTATE_DEG_PER_SEC = 30;
+        let isAutoRotating = false;
+        let autoId = null;
+        let lastAutoTs = 0;
 
-  function autoStep(now){
-    if (!isAutoRotating) return;
+        function autoStep(now){
+          if (!isAutoRotating) return;
+          let dt;
+          if (!lastAutoTs) { dt = 0; }
+          else {
+            dt = (now - lastAutoTs) / 1000;
+            if (!(dt > 0 && isFinite(dt))) dt = 0;
+            else dt = Math.min(dt, 0.033);
+          }
+          lastAutoTs = now;
 
-    // Force zero dt on the first tick after resume/handoff
-    let dt;
-    if (!lastAutoTs) {
-      dt = 0;
-    } else {
-      dt = (now - lastAutoTs) / 0000;
-      if (!(dt > 0 && isFinite(dt))) dt = 0;
-      else dt = Math.min(dt, 0.033); // clamp to ~33ms to avoid jumps
-    }
-    lastAutoTs = now;
+          const orbit = introBrain.getCameraOrbit();
+          const nextTheta = orbit.theta + (AUTO_ROTATE_DEG_PER_SEC * Math.PI/180) * dt;
+          writeOrbit(nextTheta, clampPhi(orbit.phi), orbit.radius);
 
-    const orbit = introBrain.getCameraOrbit();
-    const nextTheta = orbit.theta + (AUTO_ROTATE_DEG_PER_SEC * Math.PI/180) * dt;
-    writeOrbit(nextTheta, clampPhi(orbit.phi), orbit.radius);
+          autoId = requestAnimationFrame(autoStep);
+        }
+        function startAutoRotate(now){
+          if (isAutoRotating) return;
+          isAutoRotating = true;
+          lastAutoTs = 0;
+          autoStep(now ?? performance.now());
+        }
+        function stopAutoRotate(){
+          isAutoRotating = false;
+          if (autoId){ cancelAnimationFrame(autoId); autoId = null; }
+        }
 
-    autoId = requestAnimationFrame(autoStep);
-  }
+        /* Inertia (20% longer), seamless handoff to autorotate in SAME frame */
+        let momentumId = null;
+        let angularVel = 0; // deg/s
+        let lastTheta = null;
+        let lastTs = 0;
 
-  function startAutoRotate(now){
-    if (isAutoRotating) return;
-    isAutoRotating = true;
-    lastAutoTs = 0; // guarantees first tick uses dt=0
-    autoStep(now ?? performance.now()); // run immediately this frame
-  }
+        const MOMENTUM_BOOST = 1.95;
+        const MOMENTUM_DECAY = 0.966;
+        const STOP_THRESHOLD = 0.015;
 
-  function stopAutoRotate(){
-    isAutoRotating = false;
-    if (autoId){ cancelAnimationFrame(autoId); autoId = null; }
-  }
+        function cancelMomentum(){
+          if (momentumId){ cancelAnimationFrame(momentumId); momentumId = null; }
+        }
+        function momentumStep(prevNow){
+          return function step(now){
+            const dt = (now - prevNow) / 1000;
+            prevNow = now;
 
-  // --- inertia (20% longer), seamless handoff to autorotate in SAME frame ---
-  let momentumId = null;
-  let angularVel = 0; // deg/s
-  let lastTheta = null;
-  let lastTs = 0;
+            const orbit = introBrain.getCameraOrbit();
+            const nextTheta = orbit.theta + (angularVel * Math.PI/180) * dt;
+            writeOrbit(nextTheta, clampPhi(orbit.phi), orbit.radius);
 
-  const MOMENTUM_BOOST = 1.95;   // stronger kick (+~30% vs 1.5)
-  const MOMENTUM_DECAY = 0.966;  // 20% longer glide
-  const STOP_THRESHOLD = 0.015;  // lower stop speed
+            angularVel *= MOMENTUM_DECAY;
 
-  function cancelMomentum(){
-    if (momentumId){ cancelAnimationFrame(momentumId); momentumId = null; }
-  }
+            if (Math.abs(angularVel) > STOP_THRESHOLD){
+              momentumId = requestAnimationFrame(step);
+            } else {
+              angularVel = 0;
+              momentumId = null;
+              // Seamless handoff: start autorotate now and tick in the same frame
+              stopAutoRotate();
+              startAutoRotate(now);
+            }
+          };
+        }
+        function startMomentum(){
+          cancelMomentum();
+          angularVel *= MOMENTUM_BOOST;
+          const now = performance.now();
+          momentumId = requestAnimationFrame(momentumStep(now));
+        }
 
-  function momentumStep(prevNow){
-    return function step(now){
-      const dt = (now - prevNow) / 1000;
-      prevNow = now;
+        function onPointerMove(){
+          const now = performance.now();
+          const orbit = introBrain.getCameraOrbit();
+          if (lastTheta != null){
+            const dTheta = orbit.theta - lastTheta;
+            const dt = (now - lastTs) / 1000;
+            if (dt > 0){ angularVel = (dTheta * 180/Math.PI) / dt; }
+          }
+          lastTheta = orbit.theta;
+          lastTs = now;
+        }
+        function onPointerDown(){
+          stopAutoRotate();
+          cancelMomentum();
+          lastTheta = null;
+          lastTs = performance.now();
+          introBrain.addEventListener('pointermove', onPointerMove);
+        }
+        function onPointerUp(){
+          introBrain.removeEventListener('pointermove', onPointerMove);
+          if (Math.abs(angularVel) > 0.01){
+            startMomentum();
+          } else {
+            startAutoRotate(performance.now());
+          }
+        }
+        introBrain.addEventListener('pointerdown', onPointerDown);
+        introBrain.addEventListener('pointerup', onPointerUp);
+        introBrain.addEventListener('pointercancel', onPointerUp);
+        introBrain.addEventListener('mouseleave', (e) => { if (e.buttons === 0) onPointerUp(); });
+        window.addEventListener('scroll', () => {}, { passive: true });
+      </script>
 
-      const orbit = introBrain.getCameraOrbit();
-      const nextTheta = orbit.theta + (angularVel * Math.PI/180) * dt;
-      writeOrbit(nextTheta, clampPhi(orbit.phi), orbit.radius);
-
-      angularVel *= MOMENTUM_DECAY;
-
-      if (Math.abs(angularVel) > STOP_THRESHOLD){
-        momentumId = requestAnimationFrame(step);
-      } else {
-        angularVel = 0;
-        momentumId = null;
-        // Seamless handoff: start autorotate now and tick in the same frame
-        stopAutoRotate();
-        startAutoRotate(now);
-      }
-    };
-  }
-
-  function startMomentum(){
-    cancelMomentum();
-    angularVel *= MOMENTUM_BOOST;
-    const now = performance.now();
-    momentumId = requestAnimationFrame(momentumStep(now));
-  }
-
-  // --- interaction wiring ---
-  function onPointerMove(){
-    const now = performance.now();
-    const orbit = introBrain.getCameraOrbit();
-    if (lastTheta != null){
-      const dTheta = orbit.theta - lastTheta; // radians
-      const dt = (now - lastTs) / 1000;
-      if (dt > 0){
-        angularVel = (dTheta * 180/Math.PI) / dt; // deg/s
-      }
-    }
-    lastTheta = orbit.theta;
-    lastTs = now;
-  }
-
-  function onPointerDown(){
-    stopAutoRotate();
-    cancelMomentum();
-    lastTheta = null;
-    lastTs = performance.now();
-    introBrain.addEventListener('pointermove', onPointerMove);
-  }
-
-  function onPointerUp(){
-    introBrain.removeEventListener('pointermove', onPointerMove);
-    if (Math.abs(angularVel) > 0.01){
-      startMomentum();
-    } else {
-      // No inertia → resume autorotate immediately with immediate tick
-      startAutoRotate(performance.now());
-    }
-  }
-
-  introBrain.addEventListener('pointerdown', onPointerDown);
-  introBrain.addEventListener('pointerup', onPointerUp);
-  introBrain.addEventListener('pointercancel', onPointerUp);
-  introBrain.addEventListener('mouseleave', (e) => { if (e.buttons === 0) onPointerUp(); });
-
-  // Keep loops alive across scroll (no-op)
-  window.addEventListener('scroll', () => {}, { passive: true });
-</script>
       <div class="enter" id="enterBtn">enter</div>
     </div>
   </section>
@@ -253,8 +263,13 @@
         <h1>Toby Gollan-Myers</h1>
       </header>
 
-      <!-- Dock for the SAME brain element, directly under the header -->
-      <div id="brainDock"></div>
+      <!-- Hero row: headshot center aligned to left text margin, brain centered -->
+      <div class="heroRow">
+        <div id="headshotWrap">
+          <img id="headshot" src="https://tobygollanm.github.io/tobygm.github.io/headshot.jpg" alt="Headshot" />
+        </div>
+        <div id="brainDock"></div>
+      </div>
 
       <h2 class="section-title" id="about">About</h2>
       <p>I'm the co-founder of Symphony Neurosciences. I studied Psychological & Brain Sciences at UCSB and split time between research and building product.</p>
@@ -275,86 +290,25 @@
     if (yearEl) yearEl.textContent = new Date().getFullYear();
 
     // Elements
-    enterBtn.addEventListener('click', () => {
-  // Capture current orientation BEFORE any movement
-  const orbit = introBrain.getCameraOrbit();
-  const target = introBrain.getCameraTarget?.();
+    const intro = document.getElementById('intro');
+    const introHeader = document.getElementById('introHeader');
+    const introBrain = document.getElementById('introBrain');
+    const enterBtn = document.getElementById('enterBtn');
+    const site = document.getElementById('site');
+    const brainDock = document.getElementById('brainDock');
 
-  // Ensure we're at the very top and avoid smooth-scroll artifacts
-  const root = document.documentElement;
-  const prevBehavior = root.style.scrollBehavior;
-  root.style.scrollBehavior = 'auto';
-  window.scrollTo(0, 0);
-
-  // Fix brain in place to animate without layout shift
-  const brainRect = introBrain.getBoundingClientRect();
-  introBrain.style.position = 'fixed';
-  introBrain.style.left = '50%';
-  introBrain.style.width = 'var(--brainSize)';
-  introBrain.style.height = 'var(--brainSize)';
-  introBrain.style.transform = 'translateX(-50%)';
-  introBrain.style.top = `${brainRect.top}px`;
-
-  const headerRect = introHeader.getBoundingClientRect();
-  const targetTop = headerRect.bottom + 16;
-
-  // Animate to target (no scaling)
-  requestAnimationFrame(() => {
-    introBrain.style.transition = `top var(--dur) var(--ease)`;
-    introBrain.style.top = `${targetTop}px`;
-  });
-
-  // Slide the site up
-  document.body.classList.add('entering');
-
-  // After animation completes: reveal site, dock brain, and RESTORE orientation
-  setTimeout(() => {
-    document.body.classList.add('entered');
-    document.body.classList.remove('entering');
-
-    // Move same element into dock and keep it positioned under the main header
-    brainDock.appendChild(introBrain);
-    introBrain.style.transition = '';
-    introBrain.style.position = 'absolute';
-    introBrain.style.left = '50%';
-    introBrain.style.top = '0';
-    introBrain.style.transform = 'translateX(-50%)';
-    introBrain.style.width = 'var(--brainSize)';
-    introBrain.style.height = 'var(--brainSize)';
-
-    // SNAP BACK to the exact orientation from before the move
-    introBrain.cameraOrbit = `${orbit.theta}rad ${orbit.phi}rad ${orbit.radius}`;
-    if (target) {
-      introBrain.cameraTarget = `${target.x}m ${target.y}m ${target.z}m`;
-    }
-    introBrain.jumpCameraToGoal?.(); // apply immediately, no smoothing
-
-    // Restore scroll behavior and ensure we're at top
-    root.style.scrollBehavior = prevBehavior || '';
-    window.scrollTo(0, 0);
-  }, 760);
-});
-
-    // Position the ENTER button initially just below the centered brain (only after load)
     function placeEnterBelowBrain(){
       const br = introBrain.getBoundingClientRect();
       const top = br.bottom + 96;
       enterBtn.style.top = `${top}px`;
     }
-
-    // Show the enter button only after the brain is ready/measured
     introBrain.addEventListener('load', () => {
-      // Defer to ensure canvas lays out, then position and show
-      setTimeout(() => {
-        placeEnterBelowBrain();
-        enterBtn.style.display = 'block';
-      }, 0);
+      setTimeout(() => { placeEnterBelowBrain(); enterBtn.style.display = 'block'; }, 0);
     });
     window.addEventListener('resize', () => {
       if (enterBtn.style.display === 'block') placeEnterBelowBrain();
     });
 
-    // Deep metallic red (same element reused)
     function applyMetallicRed(modelViewer){
       (modelViewer.model?.materials || []).forEach(m => {
         if (m.unlit) return;
@@ -367,8 +321,12 @@
     }
     introBrain.addEventListener('load', async () => { await introBrain.updateComplete; applyMetallicRed(introBrain); });
 
-    // On ENTER: animate brain under intro header; then dock it under main header at same spot
+    // On ENTER: animate brain under intro header; then dock it under main header at the same spot
     enterBtn.addEventListener('click', () => {
+      // Capture current orientation BEFORE any movement
+      const orbit = introBrain.getCameraOrbit();
+      const target = introBrain.getCameraTarget?.();
+
       // Ensure we're at top and avoid smooth-scroll artifacts
       const root = document.documentElement;
       const prevBehavior = root.style.scrollBehavior;
@@ -401,7 +359,7 @@
         document.body.classList.add('entered');
         document.body.classList.remove('entering');
 
-        // Move same element into dock and keep it positioned under the main header
+        // Move same element into dock centered horizontally
         brainDock.appendChild(introBrain);
         introBrain.style.transition = '';
         introBrain.style.position = 'absolute';
@@ -411,6 +369,13 @@
         introBrain.style.width = 'var(--brainSize)';
         introBrain.style.height = 'var(--brainSize)';
 
+        // Restore exact orientation from before the move
+        introBrain.cameraOrbit = `${orbit.theta}rad ${orbit.phi}rad ${orbit.radius}`;
+        if (target) {
+          introBrain.cameraTarget = `${target.x}m ${target.y}m ${target.z}m`;
+        }
+        introBrain.jumpCameraToGoal?.();
+
         root.style.scrollBehavior = prevBehavior || '';
         window.scrollTo(0, 0);
       }, 760);
@@ -418,4 +383,3 @@
   </script>
 </body>
 </html>
-```
