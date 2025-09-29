@@ -44,6 +44,23 @@
         environment-intensity="0.25"
         shadow-intensity="0.25">
       </model-viewer>
+      <script type="module">
+const mv = document.querySelector('#brain3d');
+mv.addEventListener('load', async () => {
+  await mv.updateComplete;
+  (mv.model?.materials || []).forEach(m => {
+    if (m.unlit) return;                         // unlit can't be metallic
+    const p = m.pbrMetallicRoughness;
+    // deep red base color (not pure #FF0000, which looks plastic)
+    p?.setBaseColorFactor?.([0.55, 0.02, 0.02, 1]);  // ~#8c0606
+    // metallic look + tight highlights
+    p?.setMetallicFactor?.(0.95);
+    p?.setRoughnessFactor?.(0.28);                  // 0.20–0.35 is a nice “polished metal” range
+    // no glow
+    m?.setEmissiveFactor?.([0,0,0]);
+  });
+});
+</script>
       <div id="brain-status" class="status">Loading 3D model…</div>
     </section>
 
