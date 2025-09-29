@@ -275,12 +275,65 @@
     if (yearEl) yearEl.textContent = new Date().getFullYear();
 
     // Elements
-    const intro = document.getElementById('intro');
-    const introHeader = document.getElementById('introHeader');
-    const introBrain = document.getElementById('introBrain');
-    const enterBtn = document.getElementById('enterBtn');
-    const site = document.getElementById('site');
-    const brainDock = document.getElementById('brainDock');
+    enterBtn.addEventListener('click', () => {
+  // Capture current orientation BEFORE any movement
+  const orbit = introBrain.getCameraOrbit();
+  const target = introBrain.getCameraTarget?.();
+
+  // Ensure we're at the very top and avoid smooth-scroll artifacts
+  const root = document.documentElement;
+  const prevBehavior = root.style.scrollBehavior;
+  root.style.scrollBehavior = 'auto';
+  window.scrollTo(0, 0);
+
+  // Fix brain in place to animate without layout shift
+  const brainRect = introBrain.getBoundingClientRect();
+  introBrain.style.position = 'fixed';
+  introBrain.style.left = '50%';
+  introBrain.style.width = 'var(--brainSize)';
+  introBrain.style.height = 'var(--brainSize)';
+  introBrain.style.transform = 'translateX(-50%)';
+  introBrain.style.top = `${brainRect.top}px`;
+
+  const headerRect = introHeader.getBoundingClientRect();
+  const targetTop = headerRect.bottom + 16;
+
+  // Animate to target (no scaling)
+  requestAnimationFrame(() => {
+    introBrain.style.transition = `top var(--dur) var(--ease)`;
+    introBrain.style.top = `${targetTop}px`;
+  });
+
+  // Slide the site up
+  document.body.classList.add('entering');
+
+  // After animation completes: reveal site, dock brain, and RESTORE orientation
+  setTimeout(() => {
+    document.body.classList.add('entered');
+    document.body.classList.remove('entering');
+
+    // Move same element into dock and keep it positioned under the main header
+    brainDock.appendChild(introBrain);
+    introBrain.style.transition = '';
+    introBrain.style.position = 'absolute';
+    introBrain.style.left = '50%';
+    introBrain.style.top = '0';
+    introBrain.style.transform = 'translateX(-50%)';
+    introBrain.style.width = 'var(--brainSize)';
+    introBrain.style.height = 'var(--brainSize)';
+
+    // SNAP BACK to the exact orientation from before the move
+    introBrain.cameraOrbit = `${orbit.theta}rad ${orbit.phi}rad ${orbit.radius}`;
+    if (target) {
+      introBrain.cameraTarget = `${target.x}m ${target.y}m ${target.z}m`;
+    }
+    introBrain.jumpCameraToGoal?.(); // apply immediately, no smoothing
+
+    // Restore scroll behavior and ensure we're at top
+    root.style.scrollBehavior = prevBehavior || '';
+    window.scrollTo(0, 0);
+  }, 760);
+});
 
     // Position the ENTER button initially just below the centered brain (only after load)
     function placeEnterBelowBrain(){
