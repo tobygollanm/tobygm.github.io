@@ -15,16 +15,16 @@
 
     /* Intro (landing) */
     .intro{position:fixed;inset:0;display:grid;place-items:center;background:var(--bg);z-index:50;transition:opacity var(--dur) ease, transform var(--dur) ease}
-    .intro__wrap{display:flex;flex-direction:column;align-items:center;gap:10px}
-    .intro h1{margin:0 0 2px;font-size:clamp(18px,3vw,32px)} /* 2x smaller */
-    model-viewer.intro-brain{width:min(28vmin,180px);height:min(28vmin,180px);display:block} /* 2x smaller */
+    .intro__wrap{display:flex;flex-direction:column;align-items:center;gap:26px}
+    .intro h1{margin:0 0 12px;font-size:clamp(18px,3vw,32px)} /* 2x smaller */
+    model-viewer.intro-brain{width:min(28vmin,180px);height:min(28vmin,180px);display:block;margin-top:8px} /* 2x smaller */
     .enter{cursor:pointer;margin-top:6px;font-size:.95rem;color:var(--muted);text-decoration:underline;text-underline-offset:3px}
     .enter:hover{color:var(--fg)}
 
     /* Animation states */
-    .intro.animating #introBrain{transform:translateY(-18vh) scale(.22);transition:transform var(--dur) ease;transform-origin:center}
-    .intro__below{transform:translateY(40vh);opacity:0;transition:transform var(--dur) ease, opacity var(--dur) ease}
-    .intro.animating .intro__below{transform:translateY(-18vh);opacity:1}
+    .intro.animating #introBrain{transform:translateY(-22vh) scale(.22);transition:transform var(--dur) ease;transform-origin:center}
+    .intro__below{transform:translateY(50vh);opacity:0;transition:transform var(--dur) ease, opacity var(--dur) ease}
+    .intro.animating .intro__below{transform:translateY(-22vh);opacity:1}
 
     /* Site content */
     .site{opacity:0;transform:scale(.985);transition:opacity var(--dur) ease, transform var(--dur) ease}
