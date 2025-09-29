@@ -7,6 +7,7 @@
   <meta name="description" content="Neurotech, startups, and notes by Toby Gollan-Myers." />
   <link rel="icon" href="./favicon.ico" />
 
+  <!-- model-viewer -->
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
   <style>
@@ -18,7 +19,10 @@
     header h1{margin:4px 0 16px;font-size:clamp(28px,3.5vw,44px);}
 
     .hero{display:flex;flex-direction:column;align-items:center;margin:8px auto 18px;}
-    model-viewer.hero-brain{width:260px;height:260px;display:block;background:#f4f4f4;border-radius:14px;}
+    model-viewer.hero-brain{
+      width:260px;height:260px;display:block;border-radius:14px;
+      background: #e7e7e7;
+    }
     .status{color:var(--muted);font-size:.95rem;margin-top:8px;text-align:center}
     .status.error{color:#b91c1c}
 
@@ -35,8 +39,9 @@
     <section class="hero" aria-label="3D brain">
       <model-viewer id="brain3d" class="hero-brain" src="./human-brain.glb"
         alt="3D brain" camera-controls auto-rotate
-        environment-image="https://modelviewer.dev/shared-assets/environments/studio_small_09_2k.hdr"
-        exposure="0.7" shadow-intensity="0.15">
+        environment-image="https://modelviewer.dev/shared-assets/environments/spruit_sunrise_2k.hdr"
+        exposure="0.25" shadow-intensity="0.05" environment-intensity="0.2"
+        tone-mapping="neutral" disable-zoom>
       </model-viewer>
       <div id="brain-status" class="status">Loading 3D model…</div>
     </section>
@@ -66,29 +71,8 @@
       status.classList.remove('error');
     });
 
-    let tried = 0;
-    async function fallbackLoad(){
-      tried++;
-      if (tried === 1) {
-        // Try the project pages absolute URL (cache-busted)
-        const abs = `https://tobygollanm.github.io/tobygm.github.io/human-brain.glb?v=${Date.now()}`;
-        mv.src = abs;
-      } else if (tried === 2) {
-        // Try raw.githubusercontent as a final fallback
-        const raw = `https://raw.githubusercontent.com/tobygollanm/tobygm.github.io/main/human-brain.glb?nocache=${Date.now()}`;
-        mv.src = raw;
-      } else {
-        // Give up after two fallbacks
-        const attrSrc = mv.getAttribute('src');
-        const resolved = new URL(attrSrc, document.baseURI).href;
-        status.textContent = `Model failed to load. Attribute src: ${attrSrc} | Resolved: ${resolved}`;
-        status.classList.add('error');
-        console.warn('Model load error — tried attribute src:', attrSrc, 'resolved to:', resolved);
-        return;
-      }
-    }
-
-    mv.addEventListener('error', fallbackLoad);
+    mv.addEventListener('error', () => {
+      const attrSrc = mv.getAttribute('src');
       const resolved = new URL(attrSrc, document.baseURI).href;
       status.textContent = `Model failed to load. Attribute src: ${attrSrc} | Resolved: ${resolved}`;
       status.classList.add('error');
